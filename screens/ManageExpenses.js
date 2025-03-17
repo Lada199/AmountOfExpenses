@@ -5,23 +5,26 @@ import { GlobalStyles } from "../constants/styles";
 import Button from "../components/UI/Button";
 import { ExpensesContext } from "../store/expenses-content";
 import ExpenseForm from "../components/ManageExpense/Expenseform";
+import { storeExpense } from "../util/http";
 
 
-function ManageExpenses  ({route, navigation}) {
+function ManageExpenses({ route, navigation }) {
 
   const expensesCtx = useContext(ExpensesContext)
 
   const editedExpenseId = route.params?.expenseId
   const isEditing = !!editedExpenseId;
 
+  const selectedExpense = expensesCtx.expenses.find((expense) => expense.id === editedExpenseId)
+
   useLayoutEffect(() => {
     navigation.setOptions({
-      title:  isEditing ? 'Edit Expense' : 'Add Expense'
+      title: isEditing ? 'Edit Expense' : 'Add Expense'
     })
 
   }, [navigation, isEditing])
 
-  function deleteExpenseHandler(){
+  function deleteExpenseHandler() {
     expensesCtx.deleteExpense(editedExpenseId)
     navigation.goBack();
 
@@ -30,13 +33,14 @@ function ManageExpenses  ({route, navigation}) {
     navigation.goBack()
   }
 
-  function confirmHandler(expenseData){
-    if(isEditing){
+  function confirmHandler(expenseData) {
+    if (isEditing) {
       expensesCtx.updateExpense(
         editedExpenseId,
         expenseData
       );
-    }else{
+    } else {
+      storeExpense(expenseData)
       expensesCtx.addExpense(expenseData)
     }
     navigation.goBack()
@@ -45,33 +49,37 @@ function ManageExpenses  ({route, navigation}) {
 
 
   return <View style={styles.container}>
-    <ExpenseForm onCancel={cancelHandler} submitButtonLabel={isEditing ? 'Update' : 'Add'} onSubmit={confirmHandler} />
-   
-    {isEditing && 
-    (
-      <View style={styles.deleteContainer}>
-      <IconButton icon='trash' color={GlobalStyles.colors.error500} size={36} onPress={deleteExpenseHandler}/>
-      </View> 
-)}
+    <ExpenseForm
+      onCancel={cancelHandler}
+      submitButtonLabel={isEditing ? 'Update' : 'Add'}
+      onSubmit={confirmHandler} 
+      defaultValues={selectedExpense}/>
+
+    {isEditing &&
+      (
+        <View style={styles.deleteContainer}>
+          <IconButton icon='trash' color={GlobalStyles.colors.error500} size={36} onPress={deleteExpenseHandler} />
+        </View>
+      )}
   </View>
-  
+
 }
 
 export default ManageExpenses
 
 const styles = StyleSheet.create({
-  container:{
-    flex:1,
-    padding:24,
+  container: {
+    flex: 1,
+    padding: 24,
     backgroundColor: GlobalStyles.colors.primary800
   },
-  deleteContainer:{
-    marginTop:16,
-    paddingTop:8,
-    borderTopWidth:2,
+  deleteContainer: {
+    marginTop: 16,
+    paddingTop: 8,
+    borderTopWidth: 2,
     borderTopColor: GlobalStyles.colors.primary200,
-    alignItems:'center'
+    alignItems: 'center'
 
   },
-  
+
 })
